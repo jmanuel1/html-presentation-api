@@ -8,6 +8,10 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start-with-demo": "concurrently --kill-others \"yarn start\" \"cd ./demo-app/ && yarn start\""
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0"
   }
 }
