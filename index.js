@@ -43,6 +43,13 @@ app.patch('/html/replace', async (req, res) => {
   res.send(htmlObject);
 });
 
+app.get('/html', async (req, res) => {
+  const { presentationID, justBefore, justAfter } = req.query;
+  const presentation = await Presentation.lookup(presentationID);
+  const html = presentation.getHTMLBetween(justBefore, justAfter);
+  res.send(html);
+});
+
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });

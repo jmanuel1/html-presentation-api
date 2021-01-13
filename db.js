@@ -10,7 +10,6 @@ exports.store = async function store(obj) {
 
 exports.load = async function load(id, deserialize) {
   const allJSON = await loadAllJSON(deserialize);
-  console.log(allJSON)
   return allJSON[id];
 }
 

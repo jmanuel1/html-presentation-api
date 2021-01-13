@@ -49,6 +49,22 @@ exports.Presentation = class Presentation {
     return targetSlide.replaceHTMLBetween(html, justBefore, justAfter);
   }
 
+  getHTMLBetween(justBefore, justAfter) {
+    // TODO: Create a locator function
+    let targetSlide = null;
+    for (let slide of this._slides) {
+      if (justBefore === slide.justBefore) {
+        targetSlide = slide;
+        break;
+      }
+    }
+    if (targetSlide === null || justAfter !== targetSlide.justAfter) {
+      throw new Error('not implemented');
+    }
+    const html = targetSlide.getHTMLBetween(justBefore, justAfter);
+    return html;
+  }
+
   static async lookup(fromID) {
     return await load(fromID, Presentation._deserialize);
   }
@@ -67,13 +83,18 @@ exports.Presentation = class Presentation {
   }
 
   static _deserialize(key, value) {
+    // TODO: Register types into here.
     const type = {
       'presentation': Presentation,
       'slide': exports.Slide,
-      'text': exports.Text
+      'text': exports.Text,
+      'html': exports.HTML
     };
     if (value._type === undefined) {
       return value;
+    }
+    if (type[value._type] === undefined) {
+      throw new Error(`Don't know how to deserialize '${value._type}' from JSON.`);
     }
     return type[value._type].fromJSON(value);
   }
@@ -129,6 +150,12 @@ exports.Slide = class Slide {
     this._contentChildren = [html];
   }
 
+  getHTMLBetween(justBefore, justAfter) {
+    // FIXME XXX: Check cursors!!!
+    const html = this._contentChildrenToHTML();
+    return html;
+  }
+
   toJSON() {
     return {
       _type: 'slide',
@@ -153,9 +180,10 @@ exports.Slide = class Slide {
   }
 
   _contentChildrenToHTML() {
-    return this._contentChildren
+    const html = this._contentChildren
       .map(child => child.toHTML())
       .reduce((a, b) => a + b, '');
+    return html;
   }
 
   get justBefore() {
@@ -211,7 +239,11 @@ exports.HTML = class HTML {
   static fromJSON(obj) {
     const html = new HTML();
     for (let prop of ['html']) {
-      html[`_${prop}`] = obj[prop] === undefined ? html[`_${prop}`] : obj[prop];
+      if (obj[prop] === undefined) {
+        console.warn(`HTML JSON missing property ${prop}`);
+      } else {
+        html[`_${prop}`] = obj[prop];
+      }
     }
     html._cursor = { justBefore: obj.justBefore, justAfter: obj.justAfter };
     return html;
