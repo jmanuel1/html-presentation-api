@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const port = 4000;
 
-const { Presentation, Slide, Text } = require('./model');
+const { Presentation, Slide, Text, HTML } = require('./model');
 
 app.get('/presentation/create', async (req, res) => {
   const presentation = new Presentation();
@@ -32,6 +32,15 @@ app.get('/presentation/export/html', async (req, res) => {
   const { presentationID } = req.query;
   const presentation = await Presentation.lookup(presentationID);
   res.send(presentation.toHTML());
+});
+
+app.patch('/html/replace', async (req, res) => {
+  const { justBefore, justAfter, presentationID, html } = req.query;
+  const presentation = await Presentation.lookup(presentationID);
+  const htmlObject = new HTML(html);
+  presentation.replaceHTMLBetween(htmlObject, justBefore, justAfter);
+  await presentation.persist();
+  res.send(htmlObject);
 });
 
 app.listen(port, () => {

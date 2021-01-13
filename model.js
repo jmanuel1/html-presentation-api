@@ -35,6 +35,20 @@ exports.Presentation = class Presentation {
     return targetSlide.replaceTextBetween(text, justBefore, justAfter);
   }
 
+  replaceHTMLBetween(html, justBefore, justAfter) {
+    let targetSlide = null;
+    for (let slide of this._slides) {
+      if (justBefore === slide.justBefore) {
+        targetSlide = slide;
+        break;
+      }
+    }
+    if (targetSlide === null || justAfter !== targetSlide.justAfter) {
+      throw new Error('not implemented');
+    }
+    return targetSlide.replaceHTMLBetween(html, justBefore, justAfter);
+  }
+
   static async lookup(fromID) {
     return await load(fromID, Presentation._deserialize);
   }
@@ -110,6 +124,11 @@ exports.Slide = class Slide {
     this._contentChildren = [text];
   }
 
+  replaceHTMLBetween(html, justBefore, justAfter) {
+    // FIXME: Check cursors
+    this._contentChildren = [html];
+  }
+
   toJSON() {
     return {
       _type: 'slide',
@@ -173,5 +192,32 @@ exports.Text = class Text {
   toHTML() {
     // FIXME: Sanitize since this isn't meant to generate HTML.
     return this._text;
+  }
+}
+
+exports.HTML = class HTML {
+  constructor(html) {
+    this._cursor = {
+      justBefore: generateID(),
+      justAfter: generateID()
+    };
+    this._html = html;
+  }
+
+  toJSON() {
+    return { _type: 'html', ...this._cursor, html: this._html };
+  }
+
+  static fromJSON(obj) {
+    const html = new HTML();
+    for (let prop of ['html']) {
+      html[`_${prop}`] = obj[prop] === undefined ? html[`_${prop}`] : obj[prop];
+    }
+    html._cursor = { justBefore: obj.justBefore, justAfter: obj.justAfter };
+    return html;
+  }
+
+  toHTML() {
+    return this._html;
   }
 }
