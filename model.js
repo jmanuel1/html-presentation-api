@@ -11,9 +11,11 @@ exports.Presentation = class Presentation {
     }
     this.openTag = new ContentArray.Tag(true, factory, 'Presentation', this._presentationCursor);
     this._contentArray = new ContentArray(this.openTag, this.openTag.toCloseTag());
+    this._name = 'New Presentation';
   }
 
   get _slides() {
+    console.log('get _slides from', this._contentArray);
     const slides = this._contentArray.toTree()[0].slides;
     return slides;
   }
@@ -59,6 +61,7 @@ exports.Presentation = class Presentation {
   }
 
   getSlideAtIndex(index) {
+    console.log('getSlideAtIndex', index);
     return this._slides[index];
   }
 
@@ -397,10 +400,11 @@ class ContentArray extends Array {
     const tag = node.openTag;
     let otherTag = null;
 
-    if (!this.getTagAroundIndexLikeTag(index, tag)) {
-      if (!this.getTagAroundIndexLikeTag(index + 1, tag)) {
-        if (!this.getTagAroundIndexLikeTag(index - 1, tag)) {
-          throw new Error(`${index} is not within or adjacent to a ${enclosingTag.name}`);
+    if (!this.getTagAroundIndexLikeTag(index, enclosingTag)) {
+      if (!this.getTagAroundIndexLikeTag(index + 1, enclosingTag)) {
+        if (!this.getTagAroundIndexLikeTag(index - 1, enclosingTag)) {
+          console.log({ thisContentArray: this });
+          throw new Error(`${index} (element ${this[index]}) is not within or adjacent to a ${enclosingTag.name}`);
         } else {
           index--;
         }
@@ -436,31 +440,6 @@ class ContentArray extends Array {
     const elements = ContentArray.fromNodes(nodes);
     this.splice(before, after - before, ...elements);
   }
-
-  // getNodesBetweenIndices(before, after) {
-  //   const slice = this.slice(before, after);
-  //   const repairedSlice = [...slice];
-  //   const leftWrapper = [], rightWrapper = [];
-  //   let stack = [];
-  //   for (let element of slice) {
-  //     if (element instanceof ContentArray.Tag) {
-  //       if (element.isOpenTag) {
-  //         stack.push(element);
-  //       } else {
-  //         if (stack.length && stack[stack.length - 1].matches(element)) {
-  //           stack.pop();
-  //         } else {
-  //           leftWrapper.push(element.withJustAfter(generateID()));
-  //           repairedSlice.unshift(element.toOpenTag().withJustBefore(generateID()));
-  //         }
-  //       }
-  //     }
-  //   }
-  //   while (stack.length) {
-  //     const tag = stack.pop();
-  //
-  //   }
-  // }
 
   getElementsBetweenIndices(before, after) {
     return this.slice(before, after);

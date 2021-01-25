@@ -4,7 +4,6 @@ const port = 4000;
 
 const { Presentation, Slide, Text, HTML } = require('./model');
 
-
 // middleware
 
 app.use(async (req, res, next) => {
@@ -29,6 +28,7 @@ app.patch('/presentation/title/update', async (req, res) => {
   presentation.setName(req.query.name);
   await presentation.persist();
   res.status(204);
+  res.send();
 });
 
 app.delete('/presentation/delete', async (req, res) => {
@@ -36,6 +36,7 @@ app.delete('/presentation/delete', async (req, res) => {
   const presentation = await Presentation.lookup(presentationID);
   await presentation.delete();
   res.status(204);
+  res.send();
 });
 
 app.patch('/slide/create', async (req, res) => {
@@ -48,10 +49,8 @@ app.patch('/slide/create', async (req, res) => {
 });
 
 app.get('/slide', async (req, res) => {
-  const { presentationID } = req.query;
   const index = +req.query.index;
-  const presentation = Presentation.lookup(presentationID);
-  const slide = presentation.getSlideAtIndex(index);
+  const slide = req.presentation.getSlideAtIndex(index);
   res.send(slide);
 });
 
@@ -60,6 +59,7 @@ app.patch('/slide/delete', async (req, res) => {
   req.presentation.deleteSlidesBetween(justBefore, justAfter);
   await req.presentation.persist();
   res.status(204);
+  res.send();
 });
 
 app.patch('/text/replace', async (req, res) => {
