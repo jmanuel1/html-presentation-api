@@ -74,7 +74,7 @@ app.patch('/text/replace', async (req, res) => {
 app.get('/text', async (req, res) => {
   const { justBefore, justAfter } = req.query;
   const text = req.presentation.getTextBetween(justBefore, justAfter);
-  res.send(text);
+  res.send({ text });
 });
 
 app.patch('/html/replace', async (req, res) => {

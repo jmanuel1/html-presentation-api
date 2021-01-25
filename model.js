@@ -1,5 +1,6 @@
 const { generateID } = require('./id');
 const { store, load, del } = require('./db');
+const { JSDOM } = require('jsdom');
 
 exports.Presentation = class Presentation {
   constructor(cursor = { justBefore: generateID(), justAfter: generateID() }) {
@@ -199,7 +200,10 @@ function elementToText(element) {
       return close[element.name];
     }
   } else {
-    // FIXME: Extract text from HTML
+    // Extract text from HTML
+    if (element.isHTML) {
+      return new JSDOM(element).window.document.body.textContent;
+    }
     return element;
   }
 }
@@ -306,7 +310,7 @@ exports.HTML = class HTML {
     justAfter: generateID()
   }) {
     this._cursor = cursor;
-    this._html = html;
+    this._html = html + '';
     function factory(children, cursor) {
       const html = new HTML(children.join(''));
       html._cursor = cursor;
@@ -329,8 +333,12 @@ exports.HTML = class HTML {
   }
 
   toInnerContentArray() {
-    return new ContentArray(this._html);
+    return new ContentArray(new HTML.String(this._html));
   }
+}
+
+exports.HTML.String = class extends String {
+  get isHTML() { return true; }
 }
 
 class ContentArray extends Array {
