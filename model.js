@@ -61,7 +61,6 @@ exports.Presentation = class Presentation {
   }
 
   getSlideAtIndex(index) {
-    console.log('getSlideAtIndex', index);
     return this._slides[index];
   }
 
@@ -349,12 +348,10 @@ class ContentArray extends Array {
 
   static fromNodes(nodes) {
     const groupedElements = nodes.map(node => [node.openTag, ...node.toInnerContentArray(), node.openTag.toCloseTag()]);
-    console.log({ groupedElements });
     return groupedElements.reduce((a, b) => a.concat(b), []);
   }
 
   cursorToIndex(singleCursor) {
-    console.log(this.map(e => ({e, cursor: e._cursor})));
     for (let i = 0; i < this.length; i++) {
       const element = this[i];
       if (element instanceof ContentArray.Tag) {
@@ -372,7 +369,6 @@ class ContentArray extends Array {
     const nodes = [];
     const tagStack = [];
     for (let element of this) {
-      console.log({ nodes, tagStack, element });
       if (element instanceof ContentArray.Tag) {
         if (element.isOpenTag) {
           tagStack.push({ tag: element, index: nodes.length });
@@ -403,7 +399,6 @@ class ContentArray extends Array {
     if (!this.getTagAroundIndexLikeTag(index, enclosingTag)) {
       if (!this.getTagAroundIndexLikeTag(index + 1, enclosingTag)) {
         if (!this.getTagAroundIndexLikeTag(index - 1, enclosingTag)) {
-          console.log({ thisContentArray: this });
           throw new Error(`${index} (element ${this[index]}) is not within or adjacent to a ${enclosingTag.name}`);
         } else {
           index--;
@@ -423,7 +418,6 @@ class ContentArray extends Array {
   replaceNodesBetweenIndicesWithin(nodes, before, after, enclosingTag) {
     let actualEnclosingTag = null;
     while (!(actualEnclosingTag = this.getTagAroundIndexLikeTag(before, enclosingTag))) {
-      console.log({ before, actualEnclosingTag });
       before++;
       if (before >= this.length) {
         throw new Error(`range given is not in a ${enclosingTag.name}`);
@@ -431,7 +425,6 @@ class ContentArray extends Array {
     }
     let t = null;
     while (!(t = this.getTagAroundIndexLikeTag(after, enclosingTag)) || !actualEnclosingTag.matches(t.toCloseTag())) {
-      console.log({ after, t });
       after--;
       if (after < before) {
         throw new Error(`range given is not in a ${enclosingTag.name}`);
@@ -452,38 +445,40 @@ class ContentArray extends Array {
     function inTag() {
       return stack.some(t => t.isLike(tag));
     }
-    for (let element of this.slice(before, after)) {
+    const slice = this.slice(before, after);
+    console.log({ slice });
+    for (let element of slice) {
+      console.log({ elementsKept, tempElements });
       if (element instanceof ContentArray.Tag) {
         if (element.isOpenTag) {
           stack.push(element);
+          if (inTag()) {
+            tempElements.push(element);
+          } else {
+            elementsKept.push(element);
+          }
         } else {
           if (stack.length && stack[stack.length - 1].matches(element)) {
-            stack.pop();
-            if (!inTag()) {
-              tempElements = [];
+            if (inTag()) {
+              stack.pop();
+              if (inTag()) {
+                tempElements.push(element);
+              } else {
+                tempElements = [];
+              }
+            } else {
+              stack.pop();
+              elementsKept.push(element);
             }
           }
         }
-      }
-      if (inTag()) {
-        tempElements.push(element);
-      } else {
-        elementsKept.push(element);
       }
     }
     if (inTag()) {
       elementsKept = elementsKept.concat(tempElements);
     }
 
-    this.splice(before, after - before, elementsKept);
-
-    // while (!(this[before] instanceof ContentArray.Tag) || !this[before].isLike(tag) || !this[before].isOpenTag) {
-    //   before++;
-    // }
-    // before--;
-    // while (!actualEnclosingTag.matches(this.getTagAroundIndexLikeTag(after, enclosingTag))) {
-    //   after--;
-    // }
+    this.splice(before, after - before, ...elementsKept);
   }
 
   getTagAroundIndexLikeTag(index, tag) {
