@@ -14,7 +14,7 @@ exports.Presentation = class Presentation {
   }
 
   get _slides() {
-    const slides = this._contentArray.toTree().slides;
+    const slides = this._contentArray.toTree()[0].slides;
     return slides;
   }
 
@@ -39,7 +39,7 @@ exports.Presentation = class Presentation {
   replaceHTMLBetween(html, justBefore, justAfter) {
     const i = this._contentArray.cursorToIndex(justBefore);
     const j = this._contentArray.cursorToIndex(justAfter);
-    this._contentArray.replaceNodesBetweenIndicesWithin([text], i, j, new exports.Slide().openTag);
+    this._contentArray.replaceNodesBetweenIndicesWithin([html], i, j, new exports.Slide().openTag);
   }
 
   getHTMLBetween(justBefore, justAfter) {
@@ -369,6 +369,7 @@ class ContentArray extends Array {
     const nodes = [];
     const tagStack = [];
     for (let element of this) {
+      console.log({ nodes, tagStack, element });
       if (element instanceof ContentArray.Tag) {
         if (element.isOpenTag) {
           tagStack.push({ tag: element, index: nodes.length });
