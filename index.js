@@ -93,7 +93,6 @@ app.get('/html', async (req, res) => {
   res.send(html);
 });
 
-
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
