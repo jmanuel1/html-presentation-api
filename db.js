@@ -13,6 +13,12 @@ exports.load = async function load(id, deserialize) {
   return allJSON[id];
 }
 
+exports.del = async function (id) {
+  const allJSON = await loadAllJSON();
+  delete allJSON[id];
+  await writeAllJSON(allJSON);
+}
+
 async function loadAllJSON(deserialize) {
   let data = null;
   try {

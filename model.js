@@ -1,5 +1,5 @@
 const { generateID } = require('./id');
-const { store, load } = require('./db');
+const { store, load, del } = require('./db');
 
 exports.Presentation = class Presentation {
   constructor() {
@@ -62,7 +62,23 @@ exports.Presentation = class Presentation {
       throw new Error('not implemented');
     }
     const html = targetSlide.getHTMLBetween(justBefore, justAfter);
-    return html;
+    return `<section>${html}</section>`;
+  }
+
+  getTextBetween(justBefore, justAfter) {
+    throw new Error('TODO');
+  }
+
+  setName(name) {
+    this._name = name;
+  }
+
+  getSlideAtIndex(index) {
+    return this._slides[index];
+  }
+
+  deleteSlidesBetween(justBefore, justAfter) {
+    throw new Error('TODO');
   }
 
   static async lookup(fromID) {
@@ -73,12 +89,17 @@ exports.Presentation = class Presentation {
     await store({ [this._presentationID]: this });
   }
 
+  async delete() {
+    await del(this._presentationID);
+  }
+
   toJSON() {
     return {
       _type: 'presentation',
       presentationID: this._presentationID,
       presentationCursor: this._presentationCursor,
-      slides: this._slides
+      slides: this._slides,
+      name: this._name
     };
   }
 
@@ -101,7 +122,7 @@ exports.Presentation = class Presentation {
 
   static fromJSON(obj) {
     const presentation = new Presentation();
-    for (let prop of ['presentationID', 'presentationCursor', 'slides']) {
+    for (let prop of ['presentationID', 'presentationCursor', 'slides', 'name']) {
       presentation[`_${prop}`] = obj[prop] === undefined ? presentation[`_${prop}`] : obj[prop];
     }
     return presentation;
